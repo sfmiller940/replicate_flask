@@ -3,15 +3,15 @@
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 
-# Configure app
-app = Flask(__name__)
-app.config.from_mapping(
+# Configure api
+api = Flask(__name__)
+api.config.from_mapping(
   SECRET_KEY='dev',
   SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://super:YiejibusIkmear8@nutcracker-770.postgres.pythonanywhere-services.com:10770/myfolio'
 )
 
 # Connect DB
-db = SQLAlchemy(app)
+db = SQLAlchemy(api)
 
 # Import models
 from models import Stock, ETF
@@ -24,12 +24,12 @@ from replicator import getWeights
 #
 
 # Homepage
-@app.route('/')
+@api.route('/')
 def hello_world():
   return 'Welcome to the homepage!'
 
 # Stock listing
-@app.route('/stock')
+@api.route('/stock')
 def stocks_json():
     return jsonify( stocks = [{ # Create model methods to return dict so we don't list this out here
         'id':stk.id,
@@ -37,7 +37,7 @@ def stocks_json():
     } for stk in Stock.query.all()  ] )
 
 # ETF listing
-@app.route('/etf')
+@api.route('/etf')
 def etfs_json():
     return jsonify( etfs = [{
         'id':etf.id,
@@ -45,7 +45,7 @@ def etfs_json():
     } for etf in ETF.query.join(Stock).all() ] )
 
 # Stock listings for specific <_etf>
-@app.route('/etf/<_etf>') # Use stock symbol or etf id?
+@api.route('/etf/<_etf>') # Use stock symbol or etf id?
 def etf_json(_etf):
     et = ETF \
         .query \
@@ -62,6 +62,6 @@ def etf_json(_etf):
     })
 
 # Return weights for a given basket of stocks to replicate a given ETF
-@app.route('/replicate')
+@api.route('/replicate')
 def replicate_json():
     return jsonify( getWeights( request.form.get('base'), request.form.get('target') ) )
