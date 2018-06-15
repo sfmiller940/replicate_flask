@@ -18,4 +18,4 @@ Install required Python modules.
 
 * pip install -r requirements.txt
 
-Finally edit the file config.sys so it contains the URL for your database.
+Finally edit the file config.py so it contains the URL for your database.
