@@ -1,4 +1,4 @@
-from app import db
+from api import db
 
 # Mixin for generic model attributes
 class IdMixin(object):
