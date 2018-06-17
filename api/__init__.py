@@ -1,22 +1,23 @@
 # API Server
 
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
+import config
 
-# Configure api
+# Server
+from flask import Flask, jsonify, request
 api = Flask(__name__)
 api.config.from_mapping(
-  SECRET_KEY='dev',
-  SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://super:YiejibusIkmear8@nutcracker-770.postgres.pythonanywhere-services.com:10770/myfolio'
+  SECRET_KEY = 'dev',
+  SQLALCHEMY_DATABASE_URI = config.DBURI
 )
 
-# Connect DB
+# Database
+from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy(api)
 
-# Import models
+# Models
 from models import Stock, ETF
 
-#Import replicator
+# Analysis
 from analysis import getWeights
 
 #
