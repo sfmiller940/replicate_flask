@@ -17,7 +17,7 @@ db = SQLAlchemy(api)
 from models import Stock, ETF
 
 #Import replicator
-from replicator import getWeights
+from analysis import getWeights
 
 #
 # Route URLs
