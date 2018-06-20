@@ -1,6 +1,6 @@
-# MyFolio Server
+# MyFolio
 
-This respository contains the python code for running the server, importing data, etc.
+* v0.0.1 - models, server, and replicator
 
 ## Requirements
 
