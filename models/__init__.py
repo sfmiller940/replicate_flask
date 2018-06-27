@@ -1,4 +1,16 @@
-from api import db
+import config
+
+# Server
+from flask import Flask
+app = Flask(__name__)
+app.config.from_mapping(
+  SECRET_KEY = 'dev',
+  SQLALCHEMY_DATABASE_URI = config.DBURI
+)
+
+# Database
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy(app)
 
 # Mixin for generic model attributes
 class IdMixin(object):
@@ -16,6 +28,7 @@ stock_etf = db.Table('association', db.Model.metadata,
 class Stock(IdMixin,db.Model):
     __tablename__ = 'stocks'
     symbol = db.Column(db.String(length=50))  # Is this unique? Length? Exchange? Data source?
+    source = db.Column(db.String(length=50))  # Data source
     etf = db.relationship("ETF", back_populates="stock", uselist=False)            # The ETF if stock is ETF
     etfs = db.relationship("ETF", back_populates="stocks", secondary=stock_etf)    # The ETFs containing the stock
     history = db.relationship("History", back_populates="stock", uselist=False)
@@ -42,5 +55,9 @@ class History(IdMixin, db.Model):
     close = db.Column( db.Numeric() )
     def __repr__(self): return "<History(stock='%s', date='%s', price='%s')>" % (self.stock, self.date, self.vwap)
 
+<<<<<<< HEAD
 # Create Tables in DB if they don't already exist
+=======
+# Create tables if necessary
+>>>>>>> develop
 db.create_all()

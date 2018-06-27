@@ -1,6 +1,4 @@
-# MyFolio
-
-* v0.0.1 - models, server, and replicator
+# MyFolio v0.0.2
 
 ## Requirements
 

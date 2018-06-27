@@ -1,51 +1,53 @@
-# Periodic Data Importing
-
-# Pandas
+# Data Management
+from models import db, ETF, Stock, History
 import pandas as pd
 
-# Models - Import from models or server?
-from models import Stock, ETF, History
+etfs = ['SPY']
+#etfs = [{symbol:'SPY',source:'iex'},{symbol:'POLONIEX',source:'poloniex'}]
 
-# DB - Is this necessary?
-import sqlalchemy as SA
-from sqlalchemy.orm import sessionmaker
-engine = SA.create_engine('postgresql+psycopg2://super:YiejibusIkmear8@nutcracker-770.postgres.pythonanywhere-services.com:10770/myfolio', echo=False)
-Session = sessionmaker(bind=engine)
-session = Session()
+def getOrCreate(model,**kwargs):
+    instance = db.session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance
+    else:
+        instance = model(**kwargs)
+        db.session.add(instance)
+        return instance    
 
-def updateData():
-    # Save SPY
-    stockSPY = Stock(symbol="SPY") # Check if SPY already exists
-    session.add( stockSPY )
-    etfSPY = ETF(stock=stockSPY)
-    session.add(etfSPY)
-    session.commit()
+def updateETF():
+    for etf in etfs:
+        etf = getOrCreate(  
+            ETF, \
+            stock = getOrCreate( Stock, symbol=etf ) \
+        )
 
-    # Save SPY stocks
-    spyStocks = pd.read_excel('https://us.spdrs.com/site-content/xls/SPY_All_Holdings.xls',header=3)
-    spyStocks = spyStocks[:-11] # Drop bottom 11 rows
-    for ind, stock in spyStocks.iterrows():
-        newStk = Stock(symbol=stock['Identifier']) # Check if stock already exists
-        session.add(newStk)
-        etfSPY.stocks.append(newStk)
-        session.add(etfSPY)
-    session.commit()
+        if etf.stock.symbol == 'SPY':
+            stocks = pd.read_excel('https://us.spdrs.com/site-content/xls/SPY_All_Holdings.xls',header=3)
+            stocks = stocks[:-11]
+            for ind, row in stocks.iterrows():
+                stock = getOrCreate( Stock, symbol=row['Identifier'], source='iex' )
+                etf.stocks.append(stock) # Need to compare old/new lists
+                db.session.add(etf)
+        # Poloniex goes here
+    db.session.commit()
 
-    # Save history of stocks
-    for stock in session.query(Stock):
-        if stock.symbol != 'CCL.U' and stock.symbol != 'JEF' and stock.symbol != 'CASH_USD': # What's up with these 3?
-            df = pd.DataFrame()
-            df = pd.read_json('https://api.iextrading.com/1.0/stock/'+stock.symbol+'/chart/5y') # Only retrieve new data
-            df.set_index('date',inplace=True)
-            for date, row in df.iterrows():
-                newHist = History(
-                    stock=stock,
-                    date = date,
-                    vwap = row['vwap'],
-                    high = row['high'],
-                    low = row['low'],
-                    open = row['open'],
-                    close = row['close'],
-                )
-                session.add(newHist)
-    session.commit()
+def updateHistory():
+    for stock in db.session.query(Stock).all():
+        if stock.source == "iex":
+            if stock.symbol != 'CCL.U' and stock.symbol != 'JEF' and stock.symbol != 'CASH_USD': # What's up with these 3?
+                df = pd.DataFrame()
+                df = pd.read_json('https://api.iextrading.com/1.0/stock/'+stock.symbol+'/chart/5y') # Only retrieve new data
+                df.set_index('date',inplace=True)
+                for date, row in df.iterrows():
+                    getOrCreate(
+                        History,
+                        stock=stock,
+                        date = date,
+                        vwap = row['vwap'],
+                        high = row['high'],
+                        low = row['low'],
+                        open = row['open'],
+                        close = row['close'],
+                    )
+            # Poloniex goes here
+        db.session.commit()

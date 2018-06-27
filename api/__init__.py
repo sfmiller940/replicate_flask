@@ -1,20 +1,10 @@
 # API Server
 
-import config
-
-# Server
-from flask import Flask, jsonify, request
-api = Flask(__name__)
-api.config.from_mapping(
-  SECRET_KEY = 'dev',
-  SQLALCHEMY_DATABASE_URI = config.DBURI
-)
+# Flask app
+from models import app as api
+from flask import jsonify, request
 
 # Database
-from flask_sqlalchemy import SQLAlchemy
-db = SQLAlchemy(api)
-
-# Models
 from models import Stock, ETF
 
 # Analysis
