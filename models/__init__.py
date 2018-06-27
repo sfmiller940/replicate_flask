@@ -2,15 +2,15 @@ import config
 
 # Server
 from flask import Flask
-app = Flask(__name__)
-app.config.from_mapping(
+api = Flask(__name__)
+api.config.from_mapping(
   SECRET_KEY = 'dev',
   SQLALCHEMY_DATABASE_URI = config.DBURI
 )
 
 # Database
 from flask_sqlalchemy import SQLAlchemy
-db = SQLAlchemy(app)
+db = SQLAlchemy(api)
 
 # Mixin for generic model attributes
 class IdMixin(object):

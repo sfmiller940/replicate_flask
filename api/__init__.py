@@ -1,14 +1,8 @@
 # API Server
 
-# Flask app
-from models import app as api
-from flask import jsonify, request
-
-# Database
-from models import Stock, ETF
-
-# Analysis
+from models import api, Stock, ETF
 from analysis import getWeights
+from flask import jsonify, request
 
 #
 # Route URLs
