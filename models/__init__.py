@@ -55,9 +55,5 @@ class History(IdMixin, db.Model):
     close = db.Column( db.Numeric() )
     def __repr__(self): return "<History(stock='%s', date='%s', price='%s')>" % (self.stock, self.date, self.vwap)
 
-<<<<<<< HEAD
-# Create Tables in DB if they don't already exist
-=======
 # Create tables if necessary
->>>>>>> develop
 db.create_all()
