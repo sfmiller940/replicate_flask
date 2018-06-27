@@ -13,7 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy(api)
 
 # Mixin for generic model attributes
-class IdMixin(object):
+class idMixin(object):
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime(), server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), server_default=db.func.now(), onupdate=db.func.now())
@@ -25,7 +25,7 @@ stock_etf = db.Table('association', db.Model.metadata,
 )
 
 # Stock Model
-class Stock(IdMixin,db.Model):
+class Stock(idMixin,db.Model):
     __tablename__ = 'stocks'
     symbol = db.Column(db.String(length=50))  # Is this unique? Length? Exchange? Data source?
     source = db.Column(db.String(length=50))  # Data source
@@ -35,7 +35,7 @@ class Stock(IdMixin,db.Model):
     def __repr__(self): return "<Stock(symbol='%s')>" % (self.symbol)
 
 # ETF Model - Weights?
-class ETF(IdMixin, db.Model):
+class ETF(idMixin, db.Model):
     __tablename__ = 'etfs'
     stock_id = db.Column(db.Integer,db.ForeignKey('stocks.id'))                         # Unique? History?
     stock = db.relationship("Stock", back_populates="etf", uselist=False)           # The ETF's own stock
@@ -43,7 +43,7 @@ class ETF(IdMixin, db.Model):
     def __repr__(self): return "<ETF(stock='%s')>" % (self.stock)
 
 # History Model
-class History(IdMixin, db.Model):
+class History(idMixin, db.Model):
     __tablename__ = 'histories'
     stock_id = db.Column(db.Integer,db.ForeignKey('stocks.id'))
     stock = db.relationship("Stock", back_populates="history", uselist=False)
