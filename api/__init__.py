@@ -14,7 +14,7 @@ def hello_world():
   return 'Welcome to the homepage!'
 
 # Stock listing
-@api.route('/stock')
+@api.route('api/stock')
 def stocks_json():
     return jsonify( stocks = [{ # Create model methods to return dict so we don't list this out here
         'id':stk.id,
@@ -22,7 +22,7 @@ def stocks_json():
     } for stk in Stock.query.all()  ] )
 
 # ETF listing
-@api.route('/etf')
+@api.route('api/etf')
 def etfs_json():
     return jsonify( etfs = [{
         'id':etf.id,
@@ -30,7 +30,7 @@ def etfs_json():
     } for etf in ETF.query.join(Stock).all() ] )
 
 # Stock listings for specific <_etf>
-@api.route('/etf/<_etf>') # Use stock symbol or etf id?
+@api.route('api/etf/<_etf>') # Use stock symbol or etf id?
 def etf_json(_etf):
     et = ETF \
         .query \
@@ -47,6 +47,6 @@ def etf_json(_etf):
     })
 
 # Return weights for a given basket of stocks to replicate a given ETF
-@api.route('/replicate')
+@api.route('api/replicate')
 def replicate_json():
     return jsonify( getWeights( request.form.get('base'), request.form.get('target') ) )
