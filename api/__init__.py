@@ -1,6 +1,6 @@
 # API Server
 
-from models import api, Stock, ETF
+from models import app, Stock, ETF
 from analysis import getWeights
 from flask import jsonify, request
 
@@ -8,13 +8,8 @@ from flask import jsonify, request
 # Route URLs
 #
 
-# Homepage
-@api.route('/')
-def hello_world():
-  return 'Welcome to the homepage!'
-
 # Stock listing
-@api.route('api/stock')
+@app.route('/api/stock')
 def stocks_json():
     return jsonify( stocks = [{ # Create model methods to return dict so we don't list this out here
         'id':stk.id,
@@ -22,7 +17,7 @@ def stocks_json():
     } for stk in Stock.query.all()  ] )
 
 # ETF listing
-@api.route('api/etf')
+@app.route('/api/etf')
 def etfs_json():
     return jsonify( etfs = [{
         'id':etf.id,
@@ -30,7 +25,7 @@ def etfs_json():
     } for etf in ETF.query.join(Stock).all() ] )
 
 # Stock listings for specific <_etf>
-@api.route('api/etf/<_etf>') # Use stock symbol or etf id?
+@app.route('/api/etf/<_etf>') # Use stock symbol or etf id?
 def etf_json(_etf):
     et = ETF \
         .query \
@@ -47,6 +42,11 @@ def etf_json(_etf):
     })
 
 # Return weights for a given basket of stocks to replicate a given ETF
-@api.route('api/replicate')
+@app.route('/api/replicate')
 def replicate_json():
     return jsonify( getWeights( request.form.get('base'), request.form.get('target') ) )
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    return app.send_static_file('index.html')

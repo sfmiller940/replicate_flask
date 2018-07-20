@@ -1,3 +1,4 @@
 *.pyc
 server_env
 config.py
+app/static

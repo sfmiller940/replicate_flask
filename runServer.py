@@ -1,5 +1,5 @@
 # Initialization
 
-from api import api
+from api import app
 
 # Run tests
