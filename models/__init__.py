@@ -43,6 +43,7 @@ class History(idMixin, db.Model):
     vwap = db.Column( db.Numeric() )
     high = db.Column( db.Numeric() )
     low = db.Column( db.Numeric() )
+    volume = db.Column( db.Numeric() )
     open = db.Column( db.Numeric() )
     close = db.Column( db.Numeric() )
     def __repr__(self): return "<History(stock='%s', date='%s', price='%s')>" % (self.stock, self.date, self.vwap)

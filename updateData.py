@@ -1,4 +1,2 @@
-import data
-
-data.updateETF()
-data.updateHistory()
+from data import update
+update()
