@@ -13,19 +13,19 @@ etfs = [
     getOrCreate( ETF, db.session, stock = getOrCreate( Stock, db.session, symbol='USDT_BTC', source='poloniex' ) ),
 ]
 
-def getSymbolsSPY():
+def symbolsSPY():
     return pd.read_excel('https://us.spdrs.com/site-content/xls/SPY_All_Holdings.xls',header=3)[:-11]['Identifier'].tolist()
 
-def getSymbolsUSDT_BTC():
+def symbolsUSDT_BTC():
     return ['USDT_DASH','USDT_ETC','USDT_ETH','USDT_LTC','USDT_NXT','USDT_REP','USDT_STR','USDT_XMR','USDT_XRP','USDT_ZEC']
 
 getSymbols = {
-    'SPY': getSymbolsSPY,
-    'USDT_BTC': getSymbolsUSDT_BTC
+    'SPY': symbolsSPY,
+    'USDT_BTC': symbolsUSDT_BTC
 }
 
 # History sources
-def updateHistoryIex(stock):
+def historyIex(stock):
     if stock.symbol != 'CCL.U' and stock.symbol != 'JEF' and stock.symbol != 'CASH_USD': # What's up with these 3?
         df = pd.read_json('https://api.iextrading.com/1.0/stock/'+stock.symbol+'/chart/5y') # Only retrieve new data
         df.set_index('date',inplace=True)
@@ -43,7 +43,7 @@ def updateHistoryIex(stock):
                 volume = row['volume'] 
             )
 
-def updateHistoryPoloniex(stock):
+def historyPoloniex(stock):
     dates = []
     data={'price':[],'volume':[]}
     period = 86400 # 1 day
@@ -66,12 +66,14 @@ def updateHistoryPoloniex(stock):
         )
 
 updateHistory = {
-    'iex':updateHistoryIex,
-    'poloniex':updateHistoryPoloniex
+    'iex':historyIex,
+    'poloniex':historyPoloniex
 }
 
-# Adds ETFs and Stocks to DB
-def updateStocks():
+# Update Stocks and Histories
+def update():
+
+    # Create Stocks and add to ETFs
     for etf in etfs:
         for symbol in getSymbols[etf.stock.symbol]():
             etf.stocks.append( getOrCreate( Stock, db.session, symbol=symbol, source=etf.stock.source ) ) # Need to compare old/new lists
@@ -79,13 +81,8 @@ def updateStocks():
     db.session.commit()
     print('ETFs and Stocks added')
 
-# Updates Stock histories
-def updateHistories():
+    # Update Stock histories
     for stock in db.session.query(Stock).all():
         updateHistory[stock.source](stock)
         db.session.commit()
         print(stock.symbol + ' history updated')
-
-def update():
-    updateStocks()
-    updateHistories()
