@@ -1,4 +1,4 @@
-def getOrCreate(model,session,**kwargs):
+def getOrAddNew(model,session,**kwargs):
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:
         return instance

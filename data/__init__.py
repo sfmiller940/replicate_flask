@@ -2,15 +2,15 @@
 import time
 from datetime import datetime
 import pandas as pd
-from lib import getOrCreate
+from lib import getOrAddNew
 from models import db, ETF, Stock, History
 from poloniex import Poloniex
 polo = Poloniex()
 
 # ETFs
 etfs = [
-    getOrCreate( ETF, db.session, stock = getOrCreate( Stock, db.session, symbol='SPY', source='iex' ) ),
-    getOrCreate( ETF, db.session, stock = getOrCreate( Stock, db.session, symbol='USDT_BTC', source='poloniex' ) ),
+    getOrAddNew( ETF, db.session, stock = getOrAddNew( Stock, db.session, symbol='SPY', source='iex' ) ),
+    getOrAddNew( ETF, db.session, stock = getOrAddNew( Stock, db.session, symbol='USDT_BTC', source='poloniex' ) ),
 ]
 
 def symbolsSPY():
@@ -30,7 +30,7 @@ def historyIex(stock):
         df = pd.read_json('https://api.iextrading.com/1.0/stock/'+stock.symbol+'/chart/5y') # Only retrieve new data
         df.set_index('date',inplace=True)
         for date, row in df.iterrows():
-            getOrCreate(
+            getOrAddNew(
                 History,
                 db.session,
                 stock = stock,
@@ -52,7 +52,7 @@ def historyPoloniex(stock):
     start = end - ( length * period ) # 500 days ago
     raw = polo.returnChartData(currencyPair=stock.symbol,period=period,start=start,end=end )
     for i in range(len(raw)):
-        getOrCreate(
+        getOrAddNew(
             History,
             db.session,
             stock = stock,
@@ -76,7 +76,7 @@ def update():
     # Create Stocks and add to ETFs
     for etf in etfs:
         for symbol in getSymbols[etf.stock.symbol]():
-            etf.stocks.append( getOrCreate( Stock, db.session, symbol=symbol, source=etf.stock.source ) ) # Need to compare old/new lists
+            etf.stocks.append( getOrAddNew( Stock, db.session, symbol=symbol, source=etf.stock.source ) ) # Need to compare old/new lists
         db.session.add(etf)
     db.session.commit()
     print('ETFs and Stocks added')
