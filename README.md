@@ -1,4 +1,4 @@
-# MyFolio v0.0.2
+# MyFolio v0.0.3
 
 ## Requirements
 
