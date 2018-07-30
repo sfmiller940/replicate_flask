@@ -47,6 +47,6 @@ def replicate_json():
     return jsonify( getWeights( request.form.get('base'), request.form.get('target') ) )
 
 @app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
+@app.route('/<path>')
 def catch_all(path):
     return app.send_static_file('index.html')
