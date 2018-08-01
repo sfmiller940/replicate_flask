@@ -47,7 +47,6 @@ def jsonReplicate():
     return jsonify( getWeights( request.form.get('base'), request.form.get('target') ) )
 
 # Default route to index.html
-@app.route('/', defaults={'path': ''})
-@app.route('/<path>')
-def catch_all(path):
+@app.errorhandler(404)
+def page_not_found(e):
     return app.send_static_file('index.html')
