@@ -10,7 +10,7 @@ from flask import jsonify, request
 
 # Stock listing
 @app.route('/api/stock')
-def stocks_json():
+def jsonStocks():
     return jsonify( stocks = [{ # Create model methods to return dict so we don't list this out here
         'id':stk.id,
         'symbol':stk.symbol,
@@ -18,19 +18,19 @@ def stocks_json():
 
 # ETF listing
 @app.route('/api/etf')
-def etfs_json():
+def jsonEtfs():
     return jsonify( etfs = [{
         'id':etf.id,
         'symbol':etf.stock.symbol
     } for etf in ETF.query.join(Stock).all() ] )
 
 # Stock listings for specific <_etf>
-@app.route('/api/etf/<_etf>') # Use stock symbol or etf id?
-def etf_json(_etf):
+@app.route('/api/etf/<_id>') # Use stock symbol or etf id?
+def jsonEtf(_id):
     et = ETF \
         .query \
         .join(Stock) \
-        .filter( Stock.symbol == _etf ) \
+        .filter( ETF.id == _id ) \
         .first()
     return jsonify(etf={
         'id':et.id,
@@ -43,9 +43,10 @@ def etf_json(_etf):
 
 # Return weights for a given basket of stocks to replicate a given ETF
 @app.route('/api/replicate')
-def replicate_json():
+def jsonReplicate():
     return jsonify( getWeights( request.form.get('base'), request.form.get('target') ) )
 
+# Default route to index.html
 @app.route('/', defaults={'path': ''})
 @app.route('/<path>')
 def catch_all(path):
