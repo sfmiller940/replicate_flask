@@ -22,29 +22,29 @@ def jsonEtfs():
     return jsonify( etfs = [{
         'id':etf.id,
         'symbol':etf.stock.symbol
-    } for etf in ETF.query.join(Stock).all() ] )
+    } for etf in ETF.query.all() ] )
 
 # Stock listings for specific <_etf>
 @app.route('/api/etf/<_id>') # Use stock symbol or etf id?
 def jsonEtf(_id):
-    et = ETF \
-        .query \
-        .join(Stock) \
-        .filter( ETF.id == _id ) \
-        .first()
+    etf = ETF.query.filter( ETF.id == _id ).first()
     return jsonify(etf={
-        'id':et.id,
-        'symbol':et.stock.symbol,
+        'id':etf.id,
+        'symbol':etf.stock.symbol,
         'stocks':[{
             'id':stk.id,
             'symbol':stk.symbol
-        } for stk in et.stocks]
+        } for stk in etf.stocks ]
     })
 
 # Return weights for a given basket of stocks to replicate a given ETF
 @app.route('/api/replicate')
 def jsonReplicate():
-    return jsonify( getWeights( request.form.get('base'), request.form.get('target') ) )
+    histories = [
+        History.query.filter( History.stock.id == _id ).order_by( History.date ) 
+        for _id in request.form.get('basket')
+    ]
+    return jsonify( getWeights( histories ) )
 
 # Default route to index.html
 @app.errorhandler(404)
