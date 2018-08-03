@@ -16,9 +16,9 @@ class Asset(idMixin,db.Model):
     symbol = db.Column(db.String(length=50))  # Is this unique? Length? Exchange? Data source?
     source = db.Column(db.String(length=50))  # Data source
     history = db.relationship("History", back_populates="asset", uselist=False)
-    basket_id = db.Column(db.Integer, db.ForeignKey("asset.id"), nullable=True)
-    baskets = db.relationship("Asset",
-        primaryjoin=('asset.c.id==asset.c.basket_id'),
+    etf_id = db.Column(db.Integer, db.ForeignKey("asset.id"), nullable=True)
+    etfs = db.relationship("Asset",
+        primaryjoin=('asset.c.id==asset.c.etf_id'),
         remote_side='Asset.id',
         backref=db.backref("basket"),
         uselist=True
