@@ -1,6 +1,6 @@
 # API Server
 
-from models import app, Stock, ETF
+from models import app, Asset, History
 from analysis import getWeights
 from flask import jsonify, request
 
@@ -8,40 +8,40 @@ from flask import jsonify, request
 # Route URLs
 #
 
-# Stock listing
-@app.route('/api/stock')
-def jsonStocks():
-    return jsonify( stocks = [{ # Create model methods to return dict so we don't list this out here
-        'id':stk.id,
-        'symbol':stk.symbol,
-    } for stk in Stock.query.all()  ] )
+# List of assets
+@app.route('/api/asset')
+def jsonAssets():
+    return jsonify( assets = [{ # Create model methods to return dict so we don't list this out here
+        'id':ass.id,
+        'symbol':ass.symbol,
+    } for ass in Asset.query.all()  ] )
 
-# ETF listing
+# List of ETFs
 @app.route('/api/etf')
 def jsonEtfs():
     return jsonify( etfs = [{
-        'id':etf.id,
-        'symbol':etf.stock.symbol
-    } for etf in ETF.query.all() ] )
+        'id':ass.id,
+        'symbol':ass.symbol
+    } for ass in Asset.query.filter( Asset.basket != None ).all() ] )
 
-# Stock listings for specific <_etf>
+# List of assets in an ETF
 @app.route('/api/etf/<_id>') # Use stock symbol or etf id?
 def jsonEtf(_id):
-    etf = ETF.query.filter( ETF.id == _id ).first()
+    etf = Asset.query.filter( Asset.id == _id ).first()
     return jsonify(etf={
         'id':etf.id,
-        'symbol':etf.stock.symbol,
-        'stocks':[{
-            'id':stk.id,
-            'symbol':stk.symbol
-        } for stk in etf.stocks ]
+        'symbol':etf.symbol,
+        'basket':[{
+            'id':ass.id,
+            'symbol':ass.symbol
+        } for ass in etf.basket ]
     })
 
-# Return weights for a given basket of stocks to replicate a given ETF
+# Replicate an ETF from a given basket of assets
 @app.route('/api/replicate')
 def jsonReplicate():
     histories = [
-        History.query.filter( History.stock.id == _id ).order_by( History.date ) 
+        History.query.filter( History.asset.id == _id ).order_by( History.date ) 
         for _id in request.form.get('basket')
     ]
     return jsonify( getWeights( histories ) )

@@ -3,14 +3,14 @@ import time
 from datetime import datetime
 import pandas as pd
 from lib import getOrAddNew
-from models import db, ETF, Stock, History
+from models import db, Asset, History
 from poloniex import Poloniex
 polo = Poloniex()
 
 # ETFs
 etfs = [
-    getOrAddNew( ETF, db.session, stock = getOrAddNew( Stock, db.session, symbol='SPY', source='iex' ) ),
-    getOrAddNew( ETF, db.session, stock = getOrAddNew( Stock, db.session, symbol='USDT_BTC', source='poloniex' ) ),
+    getOrAddNew( Asset, db.session, symbol='SPY', source='iex' ),
+    getOrAddNew( Asset, db.session, symbol='USDT_BTC', source='poloniex' ),
 ]
 
 def symbolsSPY():
@@ -25,15 +25,15 @@ getSymbols = {
 }
 
 # History sources
-def historyIex(stock):
-    if stock.symbol != 'CCL.U' and stock.symbol != 'JEF' and stock.symbol != 'CASH_USD': # What's up with these 3?
-        df = pd.read_json('https://api.iextrading.com/1.0/stock/'+stock.symbol+'/chart/5y') # Only retrieve new data
+def historyIex(asset):
+    if asset.symbol != 'CCL.U' and asset.symbol != 'JEF' and asset.symbol != 'CASH_USD': # What's up with these 3?
+        df = pd.read_json('https://api.iextrading.com/1.0/stock/'+asset.symbol+'/chart/5y') # Only retrieve new data
         df.set_index('date',inplace=True)
         for date, row in df.iterrows():
             getOrAddNew(
                 History,
                 db.session,
-                stock = stock,
+                asset = asset,
                 date = date,
                 vwap = row['vwap'],
                 high = row['high'],
@@ -43,19 +43,19 @@ def historyIex(stock):
                 volume = row['volume'] 
             )
 
-def historyPoloniex(stock):
+def historyPoloniex(asset):
     dates = []
     data={'price':[],'volume':[]}
     period = 86400 # 1 day
     length = 500
     end = time.time() # Now
     start = end - ( length * period ) # 500 days ago
-    raw = polo.returnChartData(currencyPair=stock.symbol,period=period,start=start,end=end )
+    raw = polo.returnChartData(currencyPair=asset.symbol,period=period,start=start,end=end )
     for i in range(len(raw)):
         getOrAddNew(
             History,
             db.session,
-            stock = stock,
+            asset = asset,
             date = datetime.fromtimestamp(int(raw[i]['date'])),
             vwap = float(raw[i]['weightedAverage']),
             high = float(raw[i]['high']),
@@ -70,19 +70,19 @@ updateHistory = {
     'poloniex':historyPoloniex
 }
 
-# Update Stocks and Histories
+# Update assets and histories
 def update():
 
-    # Create Stocks and add to ETFs
+    # Create assets and add to baskets
     for etf in etfs:
-        for symbol in getSymbols[etf.stock.symbol]():
-            etf.stocks.append( getOrAddNew( Stock, db.session, symbol=symbol, source=etf.stock.source ) ) # Need to compare old/new lists
+        for symbol in getSymbols[etf.symbol]():
+            etf.basket.append( getOrAddNew( Asset, db.session, symbol=symbol, source=etf.source ) ) # Need to compare old/new lists
         db.session.add(etf)
     db.session.commit()
     print('ETFs and Stocks added')
 
-    # Update Stock histories
-    for stock in db.session.query(Stock).all():
-        updateHistory[stock.source](stock)
+    # Update asset histories
+    for asset in Asset.query.all():
+        updateHistory[asset.source](asset)
         db.session.commit()
-        print(stock.symbol + ' history updated')
+        print(asset.symbol + ' history updated')
