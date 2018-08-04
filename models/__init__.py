@@ -10,17 +10,23 @@ class idMixin(object):
     created_at = db.Column(db.DateTime(), server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), server_default=db.func.now(), onupdate=db.func.now())
 
+# ManyToMany relationship between an ETF and its assets.
+asset_etf = db.Table('asset_etf', db.Model.metadata,
+    db.Column('left_id', db.Integer, db.ForeignKey('asset.id')),
+    db.Column('right_id', db.Integer, db.ForeignKey('asset.id'))
+)
+
 # Asset Model
 class Asset(idMixin,db.Model):
     __tablename__ = 'asset'
     symbol = db.Column(db.String(length=50))  # Is this unique? Length? Exchange? Data source?
     source = db.Column(db.String(length=50))  # Data source
     history = db.relationship("History", back_populates="asset", uselist=False)
-    etf_id = db.Column(db.Integer, db.ForeignKey("asset.id"), nullable=True)
-    etfs = db.relationship("Asset",
-        primaryjoin=('asset.c.id==asset.c.etf_id'),
-        remote_side='Asset.id',
-        backref=db.backref("basket"),
+    basket = db.relationship("Asset",
+        secondary= asset_etf,
+        primaryjoin=('asset.c.id==asset_etf.c.left_id'),
+        secondaryjoin=('asset.c.id==asset_etf.c.right_id'),
+        backref=db.backref("etfs"),
         uselist=True
     )
     def __repr__(self): return "<Asset(symbol='%s')>" % (self.symbol)
