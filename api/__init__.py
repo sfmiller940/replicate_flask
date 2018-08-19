@@ -38,13 +38,23 @@ def jsonEtf(_id):
     })
 
 # Replicate an ETF from a given basket of assets
-@app.route('/api/replicate')
+@app.route('/api/replicate', methods=['POST'])
 def jsonReplicate():
-    histories = [
-        History.query.filter( History.asset.id == _id ).order_by( History.date ) 
-        for _id in request.form.get('basket')
-    ]
-    return jsonify( getWeights( histories ) )
+    basket = []
+    for id in request.get_json()['basket']:
+        basket.append({
+            'id':id,
+            'history':[{'date': row.date, 'price': str(row.vwap)} # str to deal with decimal? 
+                for row in History
+                    .query
+                    .join(History.asset)
+                    .with_entities(History.date, History.vwap)
+                    .filter( Asset.id == id )
+                    .order_by( History.date )
+                    .all()
+            ]
+        })
+    return jsonify(basket=basket)
 
 # Default route to index.html
 @app.errorhandler(404)

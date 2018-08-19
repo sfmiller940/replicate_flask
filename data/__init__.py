@@ -33,7 +33,7 @@ def historyIex(asset):
             getOrAddNew(
                 History,
                 db.session,
-                asset = asset,
+                asset_id = asset.id,
                 date = date,
                 vwap = row['vwap'],
                 high = row['high'],
@@ -55,7 +55,7 @@ def historyPoloniex(asset):
         getOrAddNew(
             History,
             db.session,
-            asset = asset,
+            asset_id = asset.id,
             date = datetime.fromtimestamp(int(raw[i]['date'])),
             vwap = float(raw[i]['weightedAverage']),
             high = float(raw[i]['high']),
