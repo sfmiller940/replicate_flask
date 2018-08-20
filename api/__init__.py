@@ -1,9 +1,8 @@
 # API Server
-
 from models import app, Asset, History
 from analysis import getWeights
-from flask import jsonify, request
-
+from flask import request
+from lib import jsonDump
 #
 # Route URLs
 #
@@ -11,7 +10,7 @@ from flask import jsonify, request
 # List of assets
 @app.route('/api/asset')
 def jsonAssets():
-    return jsonify( assets = [{ # Create model methods to return dict so we don't list this out here
+    return jsonDump( [{ # Create model methods to return dict so we don't list this out here
         'id':ass.id,
         'symbol':ass.symbol,
     } for ass in Asset.query.all()  ] )
@@ -19,7 +18,7 @@ def jsonAssets():
 # List of ETFs
 @app.route('/api/etf')
 def jsonEtfs():
-    return jsonify( etfs = [{
+    return jsonDump( [{
         'id':ass.id,
         'symbol':ass.symbol
     } for ass in Asset.query.filter( Asset.basket != None ).all() ] )
@@ -28,7 +27,7 @@ def jsonEtfs():
 @app.route('/api/etf/<_id>') # Use stock symbol or etf id?
 def jsonEtf(_id):
     etf = Asset.query.filter( Asset.id == _id ).first()
-    return jsonify(etf={
+    return jsonDump({
         'id':etf.id,
         'symbol':etf.symbol,
         'basket':[{
@@ -41,10 +40,11 @@ def jsonEtf(_id):
 @app.route('/api/replicate', methods=['POST'])
 def jsonReplicate():
     basket = []
+    minLen = 0
     for id in request.get_json()['basket']:
         basket.append({
             'id':id,
-            'history':[{'date': row.date, 'price': str(row.vwap)} # str to deal with decimal? 
+            'history':[{'date': row.date, 'price': row.vwap}
                 for row in History
                     .query
                     .join(History.asset)
@@ -54,7 +54,12 @@ def jsonReplicate():
                     .all()
             ]
         })
-    return jsonify(basket=basket)
+        if( minLen == 0 or len(basket[-1]['history']) < minLen ):
+            minLen = len(basket[-1]['history'])
+    for asset in basket:
+        asset['history'] = asset['history'][0:minLen]
+    #weights = getWeights(basket)
+    return jsonDump(basket)
 
 # Default route to index.html
 @app.errorhandler(404)
