@@ -39,6 +39,7 @@ def jsonEtf(_id):
 # Replicate an ETF from a given basket of assets
 @app.route('/api/replicate', methods=['POST'])
 def jsonReplicate():
+    # Load basket history
     basket = []
     minLen = 0
     for id in request.get_json()['basket']:
@@ -56,9 +57,15 @@ def jsonReplicate():
         })
         if( minLen == 0 or len(basket[-1]['history']) < minLen ):
             minLen = len(basket[-1]['history'])
+
+    # Trim basket histories
     for asset in basket:
         asset['history'] = asset['history'][0:minLen]
-    #weights = getWeights(basket)
+
+    # Get weights
+    for ind, weight in enumerate(getWeights(basket)):
+        basket[ind]['weight'] = weight
+
     return jsonDump(basket)
 
 # Default route to index.html
