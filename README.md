@@ -1,4 +1,4 @@
-# MyFolio v0.0.3
+# MyFolio v0.0.4
 
 ## Requirements
 
@@ -16,6 +16,10 @@
     * `source server_env/bin/activate`
 * Install required Python modules:
     * `pip install -r requirements.txt`
+
+## Frontend App
+
+Copy the latest stocktailor build into `/var/www/myfolio/app/static`
 	
 ## Configuration
 
