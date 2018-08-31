@@ -26,22 +26,21 @@ getSymbols = {
 
 # History sources
 def historyIex(asset):
-    if asset.symbol != 'CCL.U' and asset.symbol != 'JEF' and asset.symbol != 'CASH_USD': # What's up with these 3?
-        df = pd.read_json('https://api.iextrading.com/1.0/stock/'+asset.symbol+'/chart/5y') # Only retrieve new data
-        df.set_index('date',inplace=True)
-        for date, row in df.iterrows():
-            getOrAddNew(
-                History,
-                db.session,
-                asset_id = asset.id,
-                date = date,
-                vwap = row['vwap'],
-                high = row['high'],
-                low = row['low'],
-                open = row['open'],
-                close = row['close'],
-                volume = row['volume'] 
-            )
+    df = pd.read_json('https://api.iextrading.com/1.0/stock/'+asset.symbol+'/chart/5y') # Only retrieve new data
+    df.set_index('date',inplace=True)
+    for date, row in df.iterrows():
+        getOrAddNew(
+            History,
+            db.session,
+            asset_id = asset.id,
+            date = date,
+            vwap = row['vwap'],
+            high = row['high'],
+            low = row['low'],
+            open = row['open'],
+            close = row['close'],
+            volume = row['volume'] 
+        )
 
 def historyPoloniex(asset):
     dates = []
@@ -76,7 +75,8 @@ def update():
     # Create assets and add to baskets
     for etf in etfs:
         for symbol in getSymbols[etf.symbol]():
-            etf.basket.append( getOrAddNew( Asset, db.session, symbol=symbol, source=etf.source ) ) # Need to compare old/new lists
+            if symbol != 'CCL.U' and symbol != 'JEF' and symbol != 'CASH_USD': # What's up with these 3?
+                etf.basket.append( getOrAddNew( Asset, db.session, symbol=symbol, source=etf.source ) ) # Need to compare old/new lists
         db.session.add(etf)
     db.session.commit()
     print('ETFs and Stocks added')

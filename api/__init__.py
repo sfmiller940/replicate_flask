@@ -40,7 +40,7 @@ def jsonEtf(_id):
 @app.route('/api/replicate', methods=['POST'])
 def jsonReplicate():
     # Load basket history
-    basket = []
+    basket = [] # Query for assets w/ histories
     minLen = 0
     for id in request.get_json()['basket']:
         basket.append({
@@ -55,7 +55,7 @@ def jsonReplicate():
                     .all()
             ]
         })
-        if( minLen == 0 or len(basket[-1]['history']) < minLen ):
+        if( len(basket[-1]['history']) < minLen or minLen == 0):
             minLen = len(basket[-1]['history'])
 
     # Trim basket histories
