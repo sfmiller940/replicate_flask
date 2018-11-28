@@ -19,8 +19,8 @@ asset_etf = db.Table('asset_etf', db.Model.metadata,
 # Asset Model
 class Asset(idMixin,db.Model):
     __tablename__ = 'asset'
-    symbol = db.Column(db.String(length=50))  # Is this unique? Length? Exchange? Data source?
-    source = db.Column(db.String(length=50))  # Data source
+    symbol = db.Column(db.String(length=50), index=True)
+    source = db.Column(db.String(length=50), index=True)
     history = db.relationship("History", back_populates="asset", uselist=False)
     basket = db.relationship("Asset",
         secondary= asset_etf,
@@ -35,9 +35,9 @@ class Asset(idMixin,db.Model):
 # History Model
 class History(idMixin, db.Model):
     __tablename__ = 'history'
-    asset_id = db.Column(db.Integer,db.ForeignKey('asset.id'))
+    asset_id = db.Column(db.Integer,db.ForeignKey('asset.id'), index=True)
     asset = db.relationship("Asset", back_populates="history", uselist=False)
-    date = db.Column( db.DateTime() )
+    date = db.Column( db.DateTime(), index=True )
     vwap = db.Column( db.Numeric() )
     high = db.Column( db.Numeric() )
     low = db.Column( db.Numeric() )

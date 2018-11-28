@@ -9,4 +9,4 @@ import sys
 sys.path.append(config.PATH)
 
 # Run app
-from runServer import app as application
+from server import app as application
